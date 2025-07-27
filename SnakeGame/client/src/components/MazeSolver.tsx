@@ -19,12 +19,17 @@ const MazeSolverComponent: React.FC = () => {
   };
 
   const start: Point = { x: 0, y: 0 };
-  const end: Point = { x: config.width - 2, y: config.height - 2 };
+  const end: Point = { x: config.width - 1, y: config.height - 1 };
 
   // Generate a new maze
   const generateMaze = useCallback(() => {
     const generator = new MazeGenerator(config.width, config.height);
     const newMaze = generator.generate();
+    
+    // Ensure start and end positions are walkable
+    newMaze[start.x][start.y] = true;
+    newMaze[end.x][end.y] = true;
+    
     setMaze(newMaze);
     setSolutionPath([]);
     setAnimationStep(0);
@@ -34,13 +39,22 @@ const MazeSolverComponent: React.FC = () => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
-  }, [config.width, config.height]);
+  }, []);
 
   // Solve the maze with animation
   const solveMaze = useCallback(() => {
     if (maze.length === 0 || isAnimating) return;
 
+    console.log('Attempting to solve maze:', {
+      start,
+      end,
+      startWalkable: maze[start.x] && maze[start.x][start.y],
+      endWalkable: maze[end.x] && maze[end.x][end.y]
+    });
+
     const solution = MazeSolver.solve(maze, start, end);
+    
+    console.log('Solution found:', solution.length > 0 ? `${solution.length} steps` : 'No solution');
     
     if (solution.length === 0) {
       alert('No solution found for this maze!');
