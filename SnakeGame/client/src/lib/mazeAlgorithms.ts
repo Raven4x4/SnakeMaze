@@ -23,7 +23,7 @@ export class MazeGenerator {
   }
 
   generate(): boolean[][] {
-    // Reset arrays
+    // Reset arrays - Initialize with all false (walls)
     this.maze = Array(this.width).fill(null).map(() => Array(this.height).fill(false));
     this.visited = Array(this.width).fill(null).map(() => Array(this.height).fill(false));
 
@@ -32,7 +32,7 @@ export class MazeGenerator {
     while (stack.length > 0) {
       const current = stack[stack.length - 1];
       this.visited[current.x][current.y] = true;
-      this.maze[current.x][current.y] = true;
+      this.maze[current.x][current.y] = true; // Mark as walkable path
 
       const neighbors = this.getUnvisitedNeighbors(current);
 
@@ -40,7 +40,7 @@ export class MazeGenerator {
         const nextCell = neighbors[Math.floor(Math.random() * neighbors.length)];
         stack.push(nextCell);
 
-        // Remove wall between current and next cell
+        // Remove wall between current and next cell (create path)
         const wallX = Math.floor((current.x + nextCell.x) / 2);
         const wallY = Math.floor((current.y + nextCell.y) / 2);
         this.maze[wallX][wallY] = true;
@@ -49,13 +49,22 @@ export class MazeGenerator {
       }
     }
 
+    // Ensure we have a connected path from start to potential end positions
+    // Force walkable paths at corners for better maze connectivity
+    if (this.width > 2 && this.height > 2) {
+      this.maze[this.width - 1][this.height - 1] = true; // Bottom-right corner
+      this.maze[this.width - 2][this.height - 1] = true; // Connect to paths
+      this.maze[this.width - 1][this.height - 2] = true; // Connect to paths
+    }
+
     return this.maze;
   }
 
   private getUnvisitedNeighbors(point: Point): Point[] {
+    // Check neighbors at distance 2 (standard maze generation pattern)
     const directions = [
       { x: 0, y: -2 }, // Up
-      { x: 2, y: 0 },  // Right
+      { x: 2, y: 0 },  // Right  
       { x: 0, y: 2 },  // Down
       { x: -2, y: 0 }  // Left
     ];
